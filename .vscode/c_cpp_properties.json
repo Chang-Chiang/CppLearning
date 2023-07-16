@@ -1,0 +1,26 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+
+            // 搜索头文件时的路径
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+
+            // 编译器路径
+            "compilerPath": "/usr/bin/g++",
+
+            // 编译时采用的 C 标准
+            "cStandard": "c98",
+
+            // 编译时采用的 C++ 标准
+            "cppStandard": "c++11",
+
+            // 智能模式
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}
