@@ -2,7 +2,9 @@
     "files.associations": {
         "iostream": "cpp",
         "vector": "cpp",
-        "new": "cpp"
+        "new": "cpp",
+        "iosfwd": "cpp",
+        "ostream": "cpp"
     },
 
     // ctrl+N新建文件后默认的语言

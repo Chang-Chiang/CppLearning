@@ -1,4 +1,5 @@
 #include <iostream>
+
 // 顺序栈
 template <typename T = int>
 class SeqStack { // 是一个模板名称, 而不是类名称
@@ -91,7 +92,7 @@ int main() {
     // 模板类, class SeqStack<int> 从模板实例化的一个类型
     SeqStack<int> s1; // 实例化构造、析构
     s1.push(20);      // 成员方法只有在调用到, 在实例化过程中才会产生
-    s1.pop();
+    // s1.pop();
     std::cout << s1.top() << std::endl;
 
     return 0;

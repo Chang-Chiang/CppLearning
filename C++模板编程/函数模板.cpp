@@ -1,7 +1,9 @@
 #include <cstring>
 #include <iostream>
+
 using std::cout;
 using std::endl;
+
 // 函数模板
 template <typename T>    // 定义一个模板参数列表
 bool compare(T a, T b) { // compare 是一个函数模板, 模板名称
@@ -9,6 +11,7 @@ bool compare(T a, T b) { // compare 是一个函数模板, 模板名称
     return a > b;
 }
 
+// 模板的特例化
 // 针对 compare 函数模板, 提供 const char* 类型的特例化版本
 template <>
 bool compare<const char*>(const char* a, const char* b) {
@@ -21,9 +24,10 @@ bool compare(const char* a, const char* b) {
     cout << "normal compare" << endl;
     return strcmp(a, b) > 0;
 }
+
 /*
 在函数调用点, 编译器用用户指定的类型, 从原模版实例化一份函数代码出来
-模板函数：用模板从指定类型实例化出来, 真正需要进行代码编译的函数
+叫做模板函数：用模板从指定类型实例化出来, 真正需要进行代码编译的函数
 bool compare<int>(int a, int b) {
     cout << "template compare" << endl;
     return a > b;
@@ -38,7 +42,7 @@ int main() {
 
     compare(20, 30); // 函数模板的实参推演
 
-    compare(30, 40.5); // 错误 -> 定义新的模板参数列表 或者指定参数 compare<int>(30, 40.5);
+    // compare(30, 40.5); // 错误 -> 定义新的模板参数列表 或者指定参数 compare<int>(30, 40.5);
 
     /*
     模板的特例化：

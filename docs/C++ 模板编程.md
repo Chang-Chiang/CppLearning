@@ -1,4 +1,4 @@
-# C++ 模板
+# C++ 模板编程
 
 ## 简介
 
@@ -27,7 +27,7 @@
 
 + 模板的实参推演
 
-  可以根据用户传入的实参的类型, 来推导处模板类型参数的具体类型
+  可以根据用户传入的实参的类型, 来推导出模板类型参数的具体类型
 
 + 模板的特例化 (专用化) 
 
@@ -58,7 +58,6 @@
 ## 函数模板
 
 ```c++
-
 // 函数模板
 template<typename T>  // 定义一个模板参数列表
 bool compare(T a, T b) {  // compare 是一个函数模板, 模板名称
@@ -95,7 +94,7 @@ int main() {
     
     compare(20, 30);  // 函数模板的实参推演
     
-    compare(30, 40.5);  // 错误 -> 定义新的模板参数列表 或者指定参数 compare<int>(30, 40.5);
+    // compare(30, 40.5);  // 错误 -> 定义新的模板参数列表 或者指定参数 compare<int>(30, 40.5);
     
     /*
     模板的特例化：
@@ -112,6 +111,8 @@ int main() {
 }
 ```
 
+## 模板的非类型参数
+
 ```c++
 // 模板的非类型参数
 
@@ -119,7 +120,7 @@ int main() {
 template<typename T, int SIZE>  // T 为 模板类型参数, SIZE 为 模板非类型参数
 void sort(T *arr) {
     for (int i = 0; i < SIZE - 1; ++i) {
-        for (int j = 0; i < SIZE - 1 - i; ++j) {
+        for (int j = 0; j < SIZE - 1 - i; ++j) {
             if (arr[j] > arr[j + 1]) {
                 int tmp = arr[j];
                 arr[j] = arr[j + 1];
@@ -132,7 +133,7 @@ void sort(T *arr) {
 int main() {
     int arr[] = {12, 5, 7, 89, 32, 21, 35};
     const int size = sizeof(arr) / sizeof(arr[0]);
-    sort<int, size>(arr, size);
+    sort<int, size>(arr);
     
     for (int val : arr) {
         cout << val << " ";
@@ -369,7 +370,7 @@ int main() {
 
 ## 容器空间配置器 allocator
 
-按 4.3 实现vector 存在的问题
+按上述实现 vector 存在的问题
 
 ```c++
 template<typename T>

@@ -1,5 +1,6 @@
 #include <iostream>
 
+using std::cin;
 using std::cout;
 using std::endl;
 
@@ -8,18 +9,18 @@ class vector {
 public:
     // 构造
     vector(int size = 10) {
-        _first = new T[size];
+        // 需求：需要把内存开辟和对象构造分开处理
+        _first = new T[size]; // new 一个数组, 不仅开辟空间, 还会构造对象
         _last = _first;
         _end = _first + size;
     }
 
     // 析构
     ~vector() {
+        // 需求：析构容器有效的元素, 然后释放 _first 指向的堆内存
         delete[] _first;
         _first = _last = _end = nullptr;
-    }
-
-    // 拷贝构造
+    } // 拷贝构造
     vector(const vector<T>& rhs) {
         int size = rhs._end - rhs._first;
         _first = new T[size];
@@ -99,20 +100,35 @@ private:
     }
 };
 
-int main() {
-    vector<int> vec;
-    for (int i = 0; i < 20; ++i) {
-        vec.push_back(rand() % 100);
-    }
+class Test {
+public:
+    Test() { cout << "Test()" << endl; }
+    Test(const Test&) { cout << "Test(const Test&)" << endl; }
+    ~Test() { cout << "~Test()" << endl; }
+};
 
+int main() {
+
+    Test t1, t2, t3;
+
+    cout << "-------------" << endl;
+
+    vector<Test> vec;
+
+    // 期望：在容器底层内存构造一个新对象
+    // 实际做的是拷贝
+    vec.push_back(t1);
+    vec.push_back(t2);
+    vec.push_back(t3);
+
+    cout << "-------------" << endl;
+
+    // 删除对象时, 未将对象析构 (可能占用了外部资源, 必须析构)
+    // 不能用 delete(不仅析构对象, 还释放内存) -> 容器的堆内存, 不能释放
+    // 需求：只需要析构对象, 要把对象的析构和内存释放分离开
     vec.pop_back();
 
-    while (!vec.empty()) {
-        cout << vec.back() << " ";
-        vec.pop_back();
-    }
-
-    cout << endl;
+    cout << "-------------" << endl;
 
     return 0;
 }
