@@ -822,11 +822,11 @@ private:
 
 int main() {
     vector<int> vec;
-    for (int i = 0; i < 20l ++i) {
+    for (int i = 0; i < 20; ++i) {
         vec.push_back(rand() % 100 + 1);
     }
     
-    auto it1 = vec.end;
+    auto it1 = vec.end();
     // vec.pop_back();  // 执行后, 无法比较
     auto it2 = vec.end();
     
@@ -892,7 +892,7 @@ int main() {
 
   + malloc 按字节开辟内存, new 开辟内存时需要指定类型 例 new int[]。所以 malloc 开辟内存返回的都是 void`*`, operator new -> int`*`
   + malloc 只负责开辟空间, new 不仅有 malloc 的功能, 还可以进行数据的初始化
-  + malloc 开辟内存失败返回 nullptr 指针, new 抛出的时 bad_alloc 类型的异常
+  + malloc 开辟内存失败返回 nullptr 指针, new 抛出的是 bad_alloc 类型的异常
 
 + free 和 delete 的区别
 
@@ -904,7 +904,7 @@ int main() {
 
   + new delete 配合使用, new[] delete[] 配合使用
   + 对于普通的编译器内置类型, 可以混用
-  + 自定义的类类型, 有析构函数, 为了调用正确的析构函数, 那么开辟对象数组的时候, 会多开辟 4 个字节, 记录对象的个数
+  + 自定义的类类型, 有析构函数, 为了调用正确的析构函数, 那么开辟对象数组的时候, 会多开辟 4 个字节（32位环境）, 记录对象的个数
 
 ```c++
 #include <iostream>
@@ -982,101 +982,98 @@ int main() {
   + 设计成 全局方法
 
 ```c++
-template<typename T>
+template <typename T>
 class Queue {
 public:
-    
     // 构造函数
-    Queue() {
-        _front = _rear = new QueueItem();
-    }
-    
+    Queue() { _front = _rear = new QueueItem(); }
+
     // 析构函数
     ~Queue() {
-        QueueItem *cur = _front;
+        QueueItem* cur = _front;
         while (cur != nullptr) {
             _front = _front->_next;
             delete cur;
             cur = _front;
         }
     }
-    
+
     // 入队操作
-    void push(const T &val) {
-        QueueItem *item = new QueueItem(val);
-        rear->_next = item;
+    void push(const T& val) {
+        QueueItem* item = new QueueItem(val);
+        _rear->_next = item;
         _rear = item;
     }
-    
+
     // 出队
     void pop() {
-        if (empty())
+        if (empty()) {
             return;
-        QueueItem *first = _front->next;
-        _front->next = first->next;
-        if(_front->next == nullptr) {
+        }
+        QueueItem* first = _front->_next;
+        _front->_next = first->_next;
+        if (_front->_next == nullptr) {
             _rear = _front;
         }
         delete first;
     }
-    
-    // 查看对头
-    T front()const {
-        return _front->_next->_data;
-    }
-    
-    bool empty()const { return _front == _rear; }
-    
+
+    // 查看队头
+    T front() const { return _front->_next->_data; }
+
+    bool empty() const { return _front == _rear; }
+
 private:
-    
-    // 【问题解决】产生一个 QueueItem 的对象池 (10000 个 QueueItem 节点) 
+    // 【问题解决】产生一个 QueueItem 的对象池 (10000 个 QueueItem 节点)
     struct QueueItem {
+        // 零构造，默认构造
         QueueItem(T data = T()) : _data(data), _next(nullptr) {}
-        
+
         // 给 QueueItem 提供自定义内存管理
         void* operator new(size_t size) {
             if (_itemPool == nullptr) {
                 _itemPool = (QueueItem*)new char[POOL_ITEM_SIZE * sizeof(QueueItem)];
-                QueueItem *p = _itemPool;
-                for (; p < _itemPool POOL_ITEM_SIZE - 1; ++p) {
+                QueueItem* p = _itemPool;
+                for (; p < _itemPool + POOL_ITEM_SIZE - 1; ++p) {
                     p->_next = p + 1;
                 }
                 p->_next = nullptr;
             }
-            QueueItem *p = _itemPool;
+            QueueItem* p = _itemPool;
             _itemPool = _itemPool->_next;
             return p;
         }
-        void operator delete(oid *ptr) {
-            QueueItem *p = (QueueItem*)ptr;
+        void operator delete(void* ptr) {
+            QueueItem* p = (QueueItem*)ptr;
             p->_next = _itemPool;
             _itemPool = p;
         }
-        T _data;
-        QueueItem *_next;
-        static QueueItem *_itemPool;
-        static const int POOL_ITEM_SIZE = 1000000;
-    }
-    
-    QueueItem *_front;  // 指向头节点
-    QueueItem *_rear;  // 指向队尾
+        T                 _data;
+        QueueItem*        _next;
+        static QueueItem* _itemPool; // 指向对象池起始地址
+        static const int  POOL_ITEM_SIZE = 100000;
+    };
+
+    QueueItem* _front; // 指向头节点
+    QueueItem* _rear;  // 指向队尾
 };
 
 // 静态成员变量 _itemPool 定义
 // typename 告诉编译器, 嵌套作用域下的名字 (QueueItem) 是一个类型
-template<typename T>
-typename Queue<T>::QueueItem *Queue<T>::QueueItem::itemPool = nullptr;
+template <typename T>
+typename Queue<T>::QueueItem* Queue<T>::QueueItem::_itemPool = nullptr;
 
 int main() {
     Queue<int> que;
-    
+
     // 【问题】短时间内大量调用 malloc, free
-    for (int i = 0; i < 1000000; ++i) {  
+    for (int i = 0; i < 1000000; ++i) {
         que.push(i);
         que.pop();
     }
+
     cout << que.empty() << endl;
-    
+
     return 0;
 }
 ```
