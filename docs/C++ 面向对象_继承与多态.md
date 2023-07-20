@@ -55,7 +55,7 @@ public:
     ~Base() { cout << "~Base()" << endl; }
 protected:
     int ma;
-}
+};
 
 class Derive : public Base {
 public:
@@ -70,11 +70,10 @@ public:
     
 private:
     int mb;
-}
+};
 
 int main() {
     Derive d(20);
-    
     return 0;
 }
 ```
@@ -89,7 +88,11 @@ int main() {
 
   在继承结构当中, 派生类的同名成员, 把基类的同名成员隐藏了
 
-+ 覆盖关系
++ 覆盖关系/重写
+
+  + 虚函数表中虚函数地址的覆盖
+
+  + 基类虚函数，派生类与基类相同的函数，即派生类的该函数对基类虚函数进行了重写/覆盖
 
 + 继承中的转换
 
@@ -105,15 +108,22 @@ int main() {
 class Base {
 public:
     Base(int data = 10) :ma(data) {}
+    // #1 与 #2 是重载关系
+    // #2 与 #3 不是重载关系
+    // #1 与 #3 是隐藏关系，#2 与 #3 是隐藏关系
+    // #1
     void show() { cout << "Base::show()" << endl; }
+    // #2
     void show(int) { cout << "Base::show(int)" << endl; }
 protected:
     int ma;
-}
+};
 
 class Derive : public Base {
 public:
     Derive(int data = 20) :Base(data), mb(data) {}
+    // #3 把 #1 #2 隐藏了
+    // #3
     void show() { cout << "Derive::show()" << endl; }
 private:
     int mb;
@@ -155,7 +165,7 @@ public:
     void show(int) { cout << "Base::show(int)" << endl; }
 protected:
     int ma;
-}
+};
 
 class Derive : public Base {
 public:
@@ -164,7 +174,6 @@ public:
 private:
     int mb;
 };
-
 
 int main() {
     
@@ -176,8 +185,8 @@ int main() {
     cout << sizeof(Base) << endl;  // 4
     cout << sizeof(Derive) << endl;  // 8
     
-    cout << typeid(pb).name << endl;  // class Base*
-    cout << typeid(*pb).name << endl;  // class Base
+    cout << typeid(pb).name() << endl;  // class Base*
+    cout << typeid(*pb).name() << endl;  // class Base
     
     return 0;
 }
@@ -196,15 +205,19 @@ int main() {
   class Base {
   public:
       Base(int data = 10) :ma(data) {}
+      // #1
       virtual void show() { cout << "Base::show()" << endl; }
+      // #2
       virtual void show(int) { cout << "Base::show(int)" << endl; }
   protected:
       int ma;
-  }
+  };
   
   class Derive : public Base {
   public:
       Derive(int data = 20) :Base(data), mb(data) {}
+      // #3 与 #1 是覆盖关系
+      // #3
       void show() { cout << "Derive::show()" << endl; }
   private:
       int mb;
@@ -221,18 +234,18 @@ int main() {
       	  mov ecx, dword ptr[eax]  # 虚函数表的四个字节, 即虚函数的地址放到 ecx
       	  call ecx  # 虚函数的地址  动态 (运行时期) 的绑定 (函数的调用) 
       */
-      pb->show();  
-      pb->show(10);  // Base::show(int) 是一个虚函数, 此时就得动态绑定
+      pb->show();  // Base::show() 是一个虚函数, 此时就得动态绑定
+      pb->show(10);  
       
       cout << sizeof(Base) << endl;  // 4 + 4(vfptr) = 8
       cout << sizeof(Derive) << endl;  // 8 + 4(vfptr) = 12
       
-      cout << typeid(pb).name << endl;  // class Base*
+      cout << typeid(pb).name() << endl;  // class Base*
       
       // pb 的类型：Base
       // 如果 Base 没有虚函数, *pb 识别的就是编译时期的类型 *pb -> class Base
       // 如果 Base 有虚函数, *pb 识别的是运行时期的类型, 即 RTTI 类型 pb -> d(vfptr) -> Derive vftable
-      cout << typeid(*pb).name << endl;  // class Derive
+      cout << typeid(*pb).name() << endl;  // class Derive
       
       return 0;
   }
@@ -274,10 +287,10 @@ int main() {
 
   + 如果派生类中的方法, 和基类继承来的某个方法, 返回值、函数名、参数列表都相同, 而且基类的方法是 virtual 虚函数, 那么派生类的这个方法, 自动处理成虚函数
 
-+ [覆盖关系](###6.3 重载、隐藏、覆盖)
++ [覆盖关系](##重载、隐藏、覆盖)
 
   + 虚函数表中虚函数地址的覆盖
-  + 基类和派生类的方法, 返回值、函数名、参数列表都想如同, 而且基类的方法是虚函数, 那么派生类的方法就自动处理成虚函数, 他们之间称为覆盖关系
+  + 基类和派生类的方法, 返回值、函数名、参数列表都相同, 而且基类的方法是虚函数, 那么派生类的方法就自动处理成虚函数, 他们之间称为覆盖关系
 
   ```angular
   ┌────────────────────────────────┐ 
@@ -340,7 +353,7 @@ public:
     	cout << "Derive()" << endl;        
     }
     
-    // 基类的析构函数是 virtual 虚函数, 那么派生类u的析构函数自动成为虚函数
+    // 基类的析构函数是 virtual 虚函数, 那么派生类的析构函数自动成为虚函数
     ~Derive() {
         cout << "~Derive()" << endl; 
     }
@@ -400,7 +413,7 @@ public:
     	cout << "Derive()" << endl;        
     }
     
-    // 基类的析构函数是 virtual 虚函数, 那么派生类u的析构函数自动成为虚函数
+    // 基类的析构函数是 virtual 虚函数, 那么派生类的析构函数自动成为虚函数
     ~Derive() {
         cout << "~Derive()" << endl; 
     }
@@ -460,6 +473,12 @@ int main() {
   在继承结构中, 基类指针 (引用) 指向派生类对象, 通过该指针 (引用) 调用同名覆盖方法 (虚函数) , 基类指针指向哪个派生类对象, 就会调用哪个派生类对象的覆盖方法, 成为多态
 
   + 多态底层是通过动态绑定实现的, 基类指针 pbase 访问谁的 vfptr, 继续访问谁的 vftable, 调用的是对应的派生类对象的方法
+  
++ 复习：继承的好处是什么？
+
+  + 可以做代码的复用
+  + 在基类中提供统一的虚函数接口，让派生类进行重写，然后就可以使用多态了
+
 
 ```c++
 #include <iostream>
@@ -522,10 +541,81 @@ int main() {
     Dog dog("二哈");
     Pig pig("佩奇");
     
-    bark(cat);
-    bark(dog);
-    bark(pig);
+    bark(&cat);
+    bark(&dog);
+    bark(&pig);
     
+    return 0;
+}
+```
+
+## 抽象类
+
+类用于抽象一个实体的类型。
+
+但上述定义的 Animal 的初衷，并不是让 Animal 抽象某个实体的类型
+
++ 让所有的动物实体类通过继承 Animal 直接复用 string _name 属性
++ 给所有的派生类保留统一的覆盖/重写接口
+
+拥有纯虚函数的类叫做抽象类！抽象类不能再实例化对象了，但是可以定义指针和引用变量
+
+```c++
+// 动物的基类
+class Animal {
+public:
+    Animal(string name) :_name(name) {}
+    // virtual void bark() {}
+    
+    // 纯虚函数
+    virtual void bark() = 0;
+protected:
+    string _name;
+};
+```
+
+```c++
+class Car {
+public:
+    Car(string name) : _name(name) {double oil}
+    double getLeftMiles() {
+        return oil * getMilesPerGallon();//动态绑定
+    }
+protected:
+    string _name;
+    virtual double getMilesPerGallon() = 0; // 纯虚函数
+};
+
+class Bnze : public Car {
+public:
+    Bnze(string name) :Car(name) {}
+    double getMilesPerGallon {return 20.0;}
+};
+
+class BMW : public Car {
+public:
+    BMW(string name) :Car(name) {}
+    double getMilesPerGallon {return 19.0;}
+};
+
+class Audi : public Car {
+public:
+    Audi(string name) :Car(name) {}
+    double getMilesPerGallon {return 18.0;}
+};
+
+void showCarLeftMiles(Car& car) {
+    cout << car.getLeftMiles() << endl;//静态绑定
+}
+
+int main () {
+    Bnze b1("奔驰");
+    BMW b2("宝马");
+    Audi a("奥迪");
+    
+    showCarLeftMiles(b1);
+    showCarLeftMiles(b2);
+    showCarLeftMiles(a);
     return 0;
 }
 ```
@@ -673,7 +763,7 @@ int main() {
           clear();
       }
       
-      void clear() { memeset(this, 0, sizeof(*this)); }
+      void clear() { memset(this, 0, sizeof(*this)); }
       
       virtual void show() {
           cout << "call Base::show()" << endl;
@@ -751,7 +841,7 @@ class C: public A, public b {
 class A {
 public:
 private:
-    inr ma;
+    int ma;
 };
 
 class B : public A {
@@ -776,7 +866,7 @@ B b;  8 个字节
 class A {
 public:
 private:
-    inr ma;
+    int ma;
 };
 
 class B : virtual public A {
@@ -866,7 +956,7 @@ B::$vbtable@:
           free(ptr);
       }
   private:
-      inr ma;
+      int ma;
   };
   
   class B : virtual public A {
@@ -1042,7 +1132,7 @@ class D size(20):
       int ma;   
   };
   // ================================================= //
-  class B : virtual A {
+  class B : virtual public A {
   public:
       B(int data) :A(data), mb(data) { cout << "B()" << endl; }
       ~B() { cout << "~B()" << endl; }
@@ -1050,7 +1140,7 @@ class D size(20):
       int mb;   
   };
   
-  class C : virtual A {
+  class C : virtual public A {
   public:
       C(int data) :A(data), mc(data) { cout << "C()" << endl; }
       ~C() { cout << "~C()" << endl; }
