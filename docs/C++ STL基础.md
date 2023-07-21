@@ -7,10 +7,10 @@ STL, standard template library 标准模板库,
 #### 一、标准容器
 
 1. 顺序容器
-   + [vector](###8.2 vector)
-   + [deque](###8.3 deque)
-   + [list](###8.4 list)
-2. [容器适配器](###8.6 容器适配器)
+   + [vector](##vector)
+   + [deque](##deque)
+   + [list](##list)
+2. [容器适配器](##容器适配器)
    + stack
    + queue
    + priority_queue
@@ -111,7 +111,7 @@ STL, standard template library 标准模板库,
     int main() {
         vector<int> vec;  // vector<string> vec
         for (int i = 0; i < 20; ++i) {
-            vec.push_back(rand%100 + 1);  // 1~100 间的随机数
+            vec.push_back(rand()%100 + 1);  // 1~100 间的随机数
         }
     
         // operator[] 运算符重载函数进行遍历
@@ -173,7 +173,7 @@ STL, standard template library 标准模板库,
       cout << vec.size() << endl;  // 0
       
       for (int i = 0; i < 20; ++i) {
-          vec.push_back(rand%100 + 1);  // 1~100 间的随机数
+          vec.push_back(rand()%100 + 1);  // 1~100 间的随机数
       }
       
       cout << vec.empty() << endl;  // 0
@@ -413,7 +413,7 @@ private:
 #include <unordered_map>
 ```
 
-90% 的情况都在使用无序关联容器, 大部分的应用场景只要求 增删查的时间复杂度, 另一些除了要求增删查的时间复杂度, 还对元素顺序有要求 (负载均衡的一致性, 哈希算法), 只能选择有序关联容器
+90% 的情况都在使用无序关联容器, 大部分的应用场景只要求增删查的时间复杂度, 另一些除了要求增删查的时间复杂度, 还对元素顺序有要求 (负载均衡的一致性, 哈希算法), 只能选择有序关联容器
 
 + 无序关联容器
 
@@ -454,10 +454,10 @@ private:
         }
     
         cout << set1.size() << endl;  // 返回容器中元素个数
-        cout << setq.count(15) << endl;  // 返回 key 为 15 的元素的个数
+        cout << set1.count(15) << endl;  // 返回 key 为 15 的元素的个数
     
         // 迭代器遍历集合容器
-        auto it = set1.begin();
+        auto it1 = set1.begin();
         for (; it1 != set1.end(); ++it1) {
             cout << *it1 << " ";
         }
@@ -467,14 +467,14 @@ private:
         set1.erase(20);  
     
         // 迭代器遍历删除, 只删除一次
-        for (it1 = set1.begin(); it1 != set1.end(); ) {
+        for (it1 = set1.begin(); it1 != set1.end(); ++it1) {
             if (*it1 == 30) {
                 it1 = set1.erase(it1);  // 调用 erase, it1 迭代器就失效了
             }
         }
     
         // 迭代器遍历删除, 连续删除
-        for (it1 = set1.begin(); it1 != set1.end(); ++it1) {
+        for (it1 = set1.begin(); it1 != set1.end(); ) {
             if (*it1 == 30) {
                 it1 = set1.erase(it1);  // 调用 erase, it1 迭代器就失效了
             }
@@ -485,7 +485,7 @@ private:
     
         // find 查询
         it1 = set1.find(20);  // 不存在则返回末尾迭代器
-        if (it1 != set1.endl()) {
+        if (it1 != set1.end()) {
             set1.erase(it1);
         }
     
@@ -561,73 +561,72 @@ private:
     
     // 查重
     int main() {
-    const int ARR_LEN = 100;
-    int arr[ARR_LEN] = { 0 };
-    for (int i = 0; i < ARR_LEN; ++i) {
-    arr[i] = rand() % 20 + 1;
-    }
+        const int ARR_LEN = 100;
+        int arr[ARR_LEN] = { 0 };
+        for (int i = 0; i < ARR_LEN; ++i) {
+        	arr[i] = rand() % 20 + 1;
+    	}
     
-    // 上面的 100 个整数中, 统计哪些数字重复了, 并且统计数字重复次数
-    unordered_map<int, int> map1;
-    for (int k : arr) {
-    /*
-    auto it = map1.find(k);
-    if (it == map1.end()) {
-    map1.insert({k, 1});  // k 未出现
-    }
-    else {
-    it->second++;
-    }
-    */
+        // 上面的 100 个整数中, 统计哪些数字重复了, 并且统计数字重复次数
+        unordered_map<int, int> map1;
+        for (int k : arr) {
+            /*
+            auto it = map1.find(k);
+            if (it == map1.end()) {
+            	map1.insert({k, 1});  // k 未出现
+            }
+            else {
+           		it->second++;
+            }
+            */
     
-    map1[k]++;
-    }
+            map1[k]++;
+        }
     
-    // for_each 遍历
-    // for (pair<int, int> p : map1) {  // 发生拷贝
-    // for (pair<int, int> &p : map1) {  // 报错
-    for (const pair<int, int> &p : map1) {
-    if (p.second > 1) {
-    cout << "key: " << p.first << "count: " << p.second << endl;
-    }
-    }
+        // for_each 遍历
+        // for (pair<int, int> p : map1) {  // 发生拷贝
+        // for (pair<int, int> &p : map1) {  // 报错
+        for (const pair<int, int> &p : map1) {
+            if (p.second > 1) {
+                cout << "key: " << p.first << "count: " << p.second << endl;
+            }
+        }
     
-    // 迭代器遍历
-    auto it = map1.begin();
-    for (; it != map1.end(); ++it) {
-    if (it->second > 1) {
-    cout << "key: " << it->first << " count: " << it->second << endl;
-    }
-    }
+        // 迭代器遍历
+        auto it = map1.begin();
+            for (; it != map1.end(); ++it) {
+                if (it->second > 1) {
+                cout << "key: " << it->first << " count: " << it->second << endl;
+            }
+        }
     
-    return 0;
+        return 0;
     }
     ```
 
     ```c++
     #include <iostream>
-    #include <unordered_map>
     #include <unordered_set>
     
     // 去重
     int main() {
-    const int ARR_LEN = 100;
-    int arr[ARR_LEN] = { 0 };
-    for (int i = 0; i < ARR_LEN; ++i) {
-    arr[i] = rand() % 20 + 1;
-    }
+        const int ARR_LEN = 100;
+        int arr[ARR_LEN] = { 0 };
+        for (int i = 0; i < ARR_LEN; ++i) {
+        	arr[i] = rand() % 20 + 1;
+        }
     
-    // 上面的 100 个整数中, 把数字进行去重打印
-    unordered_set<int> set;
-    for (int v : set) {  // O(N)
-    set.insert(v);  // O(1)
-    }
-    for (int v : set) {
-    cout << v << " ";
-    }
-    cout << endl;
+        // 上面的 100 个整数中, 把数字进行去重打印
+        unordered_set<int> set;
+        for (int v : arr) {  // O(N)
+        	set.insert(v);  // O(1)
+        }
+        for (int v : set) {
+        	cout << v << " ";
+        }
+        cout << endl;
     
-    return 0;
+        return 0;
     }
     ```
 
@@ -656,7 +655,7 @@ private:
     int main() {
         set<int> set1;
         for (int i = 0; i < 20; ++i) {
-            set1.insert(rand()%20 +　１)； 
+            set1.insert(rand()%20 + 1);
         }
     
         for (int v : set1) {  // 有序
@@ -729,9 +728,9 @@ private:
   
   int main() {
       map<int, Student> stuMap;
-      stuMap.insert({1000, Srudent(1000, "张雯")});
-      stuMap.insert({1020, Srudent(1020, "李广")});
-      stuMap.insert({1030, Srudent(1030, "高洋")});
+      stuMap.insert({1000, Student(1000, "张雯")});
+      stuMap.insert({1020, Student(1020, "李广")});
+      stuMap.insert({1030, Student(1030, "高洋")});
       
       // 删除 stuMap.erase(it) or stuMap.erase(1020) 
       
@@ -739,8 +738,8 @@ private:
       cout << stuMap[1020] << endl;
       // stuMap[2000] 若不存在, 会插入 { 2000, V() }
       
-      auto it = stuMap,begin();
-      for (; it != stuMap.endl; ++it) {
+      auto it = stuMap.begin();
+      for (; it != stuMap.end(); ++it) {
           cout << "key: " << it->first << " value: " << it->second << endl;
       } 
       cout << endl;
@@ -766,7 +765,7 @@ private:
 int main() {
     vector<int> vec;
     for (int i = 0; i < 20; ++i) {
-        vec.push_back(rand % 100);
+        vec.push_back(rand() % 100);
     }
     
     // auto -> vector<int>::iterator
@@ -788,7 +787,7 @@ int main() {
     // rend() 返回的是首元素前驱位置的迭代器表示
     // vector<int>::reverse_iterator rit = vec.rbegin();
     auto rit = vec.rbegin();
-    for (; rit ! = vec.rend(); ++rit) {
+    for (; rit != vec.rend(); ++rit) {
         cout << *rit << " ";
     }
     cout << endl;
@@ -827,8 +826,6 @@ int main() {
   Sum sum;
   int ret = sum(10, 20);  // sum.operator()(10, 20)
   ```
-
-  
 
 + 函数对象相对于 C 函数指针的优点
 
@@ -1027,7 +1024,7 @@ int main() {
     // 对有序容器, 二分查找效率更高
     auto it1 = find(vec.begin(), vec.end(), 21);
     if (it1 != vec.end()) {
-        cout << "find 21 存在"
+        cout << "find 21 存在";
     }
     
     // 传入函数对象 greater, 改变容器元素排序时的比较方式
