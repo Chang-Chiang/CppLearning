@@ -53,7 +53,10 @@
         "stop_token": "cpp",
         "streambuf": "cpp",
         "thread": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "condition_variable": "cpp",
+        "list": "cpp",
+        "mutex": "cpp"
     },
 
     // ctrl+N新建文件后默认的语言

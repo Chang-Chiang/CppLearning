@@ -7,48 +7,6 @@
 + atomic 基于 CAS 操作的原子类型, 线程安全的
 + sleep_for
 
-## C++11 总结
-
-+ 关键字和语法
-
-  + auto: 根据右值, 推导出右值的类型, 然后左边变量的类型也就已知了
-
-  + nullptr: 给指针专用(能够和整数进行区别)  #define NULL 0
-
-  + foreach: 可以遍历数组、容器等, 底层就是通过指针或者迭代器来实现的
-
-    ```c++
-    for (Type val : container) {
-        cout << val << " ";
-    }
-    ```
-
-  + 右值引用: 对象优化, move 移动语义函数 和 forward 类型完美转发函数
-
-  + 模板的一个新特性: ```typename... A ```表示可变参
-
-+ 绑定器和函数对象
-
-  + function: 函数对象
-  + bind: 绑定器
-  + lamda 表达式
-
-+ 智能指针
-
-  + shared_ptr 和 weak_ptr
-
-+ 容器
-
-  + unordered_set 和 unordered_map
-  + array: 数组 => 尽量使用 vector
-  + forward_list: 前向链表 => 尽量使用 list
-
-+ C++ 语言级别支持的多线程编程
-
-  + 以前 windows 平台 createThread, Linux 平台 pthread_create, clone
-
-
-
 ## thread 类编写 C++ 多线程程序
 
 + 怎么创建启动一个线程
@@ -102,79 +60,133 @@ int main() {
 
 ## 线程间互斥
 
+> 模拟车站三个窗口卖票的程序
+
 多线程程序, 竞态条件: 多线程程序执行的结果是一致的, 不会随着 CPU 对线程不同的调用顺序, 而产生不同的运行结果
 
-```c++
-// 模拟车站三个窗口卖票的程序
+- 问题代码一
 
-#include <iostream>
-#include <thread>
-#include <list>
-#include <mutex>
+  代码问题分析：加锁位置有问题，第一个线程加锁后进入 while 循环，其他线程无法获取锁阻塞，导致只有一个窗口能卖票
 
-int ticketCount = 100;  // 车站有 100 张车票, 三个窗口一起卖票
-std::mutex mtx;  // 全局的一把互斥锁
+  ```c++
+  // 模拟卖票的线程函数
+  void sellTicket(int index) {
+      mtx.lock();
+      while (ticketCount > 0) {
+          // 临界区代码段, 保证是原子操作, 线程间互斥操作
+          cout << "窗口: " << index << "卖出第: " << ticketCount << "张票!" << endl;
+          // cout << ticketCount << endl;
+          ticketCount--;  // 不是线程安全操作
+          // mov eax, ticketCount
+          // sub eax, 1
+          // mov ticketCount, eax
+  
+          // 模拟卖票时间 100 ms
+          std::this_thread::sleep_for(std::chrono::milliseconds(100));  
+  
+      }
+      mtx.unlock();          
+  }
+  ```
 
-// 模拟卖票的线程函数
-void sellTicket(int index) {
+- 问题代码二
+
+  修改加锁位置
+
+  代码问题分析：只剩一张票时，即 ticketCount == 1，线程①进入 while 循环后加锁卖票，此时另一个线程②也进入 while 循环尝试获取锁阻塞，前面线程①卖完票后释放锁，后面线程②获取锁开始卖票，但现在 ticketCount == 0
+
+  ```c++
+  // 模拟卖票的线程函数
+  void sellTicket(int index) {
+      
+      while (ticketCount > 0) {
+          mtx.lock();
+          // 临界区代码段, 保证是原子操作, 线程间互斥操作
+          cout << "窗口: " << index << "卖出第: " << ticketCount << "张票!" << endl;
+          // cout << ticketCount << endl;
+          ticketCount--;  // 不是线程安全操作
+          // mov eax, ticketCount
+          // sub eax, 1
+          // mov ticketCount, eax
+  
+          mtx.unlock();  
+          // 模拟卖票时间 100 ms
+          std::this_thread::sleep_for(std::chrono::milliseconds(100));  
+      }            
+  }
+  ```
+
+- 完整代码
+
+    ```c++
+    // 模拟车站三个窗口卖票的程序
     
+    #include <iostream>
+    #include <thread>
+    #include <list>
+    #include <mutex>
     
-    while (count > 0) {  // 锁 + 双重判断
-        
-        mtx.lock()
-        if (ticketCount > 0) {
-            // 临界区代码段, 保证是原子操作, 线程间互斥操作
-            cout << "窗口: " << index << "卖出第: " << ticketCount << "张票!" << endl;
-            // cout << ticketCount << endl;
-            ticketCount--;  // 不是线程安全操作
-            // mov eax, ticketCount
-            // sub eax, 1
-            // mov ticketCount, eax
-            
+    int ticketCount = 100;  // 车站有 100 张车票, 三个窗口一起卖票
+    std::mutex mtx;  // 全局的一把互斥锁
+    
+    // 模拟卖票的线程函数
+    void sellTicket(int index) {
+    
+        while (ticketCount > 0) {  // 锁 + 双重判断
+    
+            mtx.lock()
+            if (ticketCount > 0) {
+                // 临界区代码段, 保证是原子操作, 线程间互斥操作
+                cout << "窗口: " << index << "卖出第: " << ticketCount << "张票!" << endl;
+                // cout << ticketCount << endl;
+                ticketCount--;  // 不是线程安全操作
+                // mov eax, ticketCount
+                // sub eax, 1
+                // mov ticketCount, eax
+    
+            }
+            mtx.unlock()
+    
+            // 模拟卖票时间 100 ms
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));  
+        }   
+    }
+    
+    int main() {
+        list<std::thread> tlist;
+        for (int i = 1; i <= 3; i++) {
+            tlist.push_back(std::thread(sellTicket, i));
         }
-        mtx.unlock()
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));  
-    }   
-}
-
-int main() {
-    list<std::thread> tlist;
-    for (int i = 1; i <= 3; i++) {
-        tlist.push_back(std::thread(sellTicket, i))
+    
+        for (std::thread &t : tlist) {
+            t.join();
+        }
+    
+        cout << "所有窗口卖票结束!" << endl;
+    
+        return 0;
     }
-    
-    for (std::thread &t : tlist) {
-        t.join();
-    }
-    
-    cout << "所有窗口卖票结束!" << endl;
-    
-    return 0;
-}
-```
+    ```
+
+## lock_guard 与 unique_lock 
 
 ```c++
 // 模拟卖票的线程函数
 void sellTicket(int index) {
     
-    
-    while (count > 0) {  // 锁 + 双重判断
+    while (ticketCount > 0) {  // 锁 + 双重判断
         
         {
-            lock_guard<std::mutex> lock(mtx);  // 栈上的局部对象, 出作用域析构 scoped_ptr
+            lock_guard<std::mutex> lock(mtx);  // 栈上的局部对象, 出作用域析构。 类似scoped_ptr
             // 保证所有线程都能释放锁, 防止死锁问题的发生
             
-            // unique_lock<std::mutex> lock(mtx);  // unique_ptr
-            // lck.lock()
+            // unique_lock<std::mutex> lock(mtx);  // 类似unique_ptr
                 
             if (ticketCount > 0) {
                 cout << "窗口: " << index << "卖出第: " << ticketCount << "张票!" << endl;
                 ticketCount--;  // 不是线程安全操作
 
             }
-            
-            // lck.unlock();
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));  
@@ -194,7 +206,7 @@ void sellTicket(int index) {
 
 #include <iostream>
 #include <mutex>
-#include <conditional_variable>
+#include <condition_variable>
 #include <queue>  // C++ STL 所有的容器都不是线程安全的
 
 std::mutex mtx;  // 定义 互斥锁, 做线程间的互斥操作
@@ -206,7 +218,7 @@ class Queue {
 public:
     // 生产物品
     void put(int val) {
-        // lock_guard<std::mutex> guard(mtx);
+
         unique_lock<std::mutex> lck(mtx);
         
         while (!que.empty()) {
@@ -228,7 +240,7 @@ public:
     
     // 消费物品
     int get() {
-        // lock_guard<std::mutex> guard(mtx);
+
         unique_lock<std::mutex> lck(mtx);
         
         while (que.empty()) {
@@ -268,9 +280,11 @@ void consumer(Queue *que) {
 int main() {
     
     Queue que;  // 两个线程共享的队列
-    std::thread t1(producer);
-    std::thread t2(consumer);
+    std::thread t1(producer, &que);
+    std::thread t2(consumer, &que);
     
+    t1.join();
+    t2.join();
     return 0;
 }
 ```
@@ -312,15 +326,18 @@ int main() {
 
 ## 原子类型
 
+- 互斥锁比较重，适用于临界区代码做的事情复杂、多 的情况
+- 系统理论上，用 CAS 保证 ++、-- 操作的原子特性就足够（也叫无锁操作）
+
 ```c++
 #include <iostream>
 #include <thread>
 #include <atomic>  // 包含了很多原子类型
 #include <list>
 
-// 防止多线程对于共享变量进行缓存
+// volatile 防止多线程对于共享变量进行缓存
 volatile std::atomic_bool isReady = false;
-volatile std::atomic_int mycount = o;
+volatile std::atomic_int mycount = 0;
 
 void task() {
     while (!isReady) {
