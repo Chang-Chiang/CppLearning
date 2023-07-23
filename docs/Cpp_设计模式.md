@@ -9,6 +9,8 @@
 + 饿汉式单例模式: 还没有获取实例对象, 实例对象就已经产生了
 + 懒汉式单例模式: 唯一的实例对象, 直到第一次获取它的时候, 才产生
 
+### 饿汉式单例模式
+
 ```c++
 // 饿汉式单例模式
 // 一定是线程安全的
@@ -25,20 +27,24 @@ private:
     }
     
     // 删除默认拷贝构造, =赋值操作符重载
-    Singleton（const Singleton&) = delete;
+    Singleton(const Singleton&) = delete;
     Singleton& operator=(const Singleton&) = delete;
 };
 
+// 静态成员变量，在数据段
 Singleton Singleton::instance;  // 静态成员变量在类外定义
 
 int main() {
     Singleton *p1 = Singleton::getInstance();
     Singleton *p2 = Singleton::getInstance();
     Singleton *p3 = Singleton::getInstance();
+    // p1、p2、p3 地址一样
     
     return 0;
 }
 ```
+
+### 懒汉式单例模式
 
 ```c++
 // 懒汉式单例模式
@@ -48,7 +54,7 @@ public:
         if (instance == nullptr) {
             instance = new Singleton();
         }
-        return &instance;
+        return instance;
     }
 private:
     static Singleton *instance;  // #2 定义一个唯一的类的实例对象
@@ -57,7 +63,7 @@ private:
     }
     
     // 删除默认拷贝构造, =赋值操作符重载
-    Singleton（const Singleton&) = delete;
+    Singleton(const Singleton&) = delete;
     Singleton& operator=(const Singleton&) = delete;
 };
 
@@ -71,6 +77,8 @@ int main() {
     return 0;
 }
 ```
+
+### 线程安全的懒汉单例模式一
 
 ```c++
 // 线程安全的懒汉单例模式 【1】
@@ -104,7 +112,7 @@ public:
                 instance = new Singleton();
             } 
         }
-        return &instance;
+        return instance;
     }   
 
 private:
@@ -114,21 +122,24 @@ private:
         
     }
 
-    Singleton（const Singleton&) = delete;
+    Singleton(const Singleton&) = delete;
     Singleton& operator=(const Singleton&) = delete;
 };
 
 Singleton *volatile Singleton::instance = nullptr; 
 ```
 
+### 线程安全的懒汉单例模式二
+
 ```c++
 // 线程安全的懒汉单例模式 【2】
 class Singleton {
 public:
     static Singleton* getInstance() { 
-        // g++ -o run 单例模式.cpp -g gdb run
+        // g++ -o run 单例模式.cpp -g 
+        // gdb run
         // 函数静态局部变量的初始化, 在汇编指令上已经自动添加线程互斥指令了
-    	static Singleton *instance;  
+    	static Singleton instance;  
         return &instance;
     }
 private: 
@@ -136,19 +147,19 @@ private:
         
     }
 
-    Singleton（const Singleton&) = delete;
+    Singleton(const Singleton&) = delete;
     Singleton& operator=(const Singleton&) = delete;
 };
 ```
 
-## 简单工厂
+## 工厂模式
 
-工厂模式, 主要是封装了对象了创建
+工厂模式, 主要是封装了对象的创建
 
-+ 简单工厂 Simple Factory:
++ 简单工厂 Simple Factory
   + 把对象的创建封装在一个接口函数里面, 通过传入不同的标识, 返回创建的对象
   + 客户不用自己负责 new 对象, 不用了解对象创建的详细过程
-  + 提供创建对象实例的接口函数不闭合, 不能对修改关闭
+  + 缺点：提供创建对象实例的接口函数不闭合, 不能对修改关闭
 + 工厂方法 Factory Method
   + Factory 基类, 提供了一个纯虚函数 (创建产品), 定义派生类 (具体产品的工厂) 负责创建对应的产品
   + 可以做到不同的产品, 在不同的工厂里面创建, 能够对现有产品, 以及产品的修改关闭
@@ -189,6 +200,8 @@ int main() {
     return 0;
 }
 ```
+
+### 简单工厂
 
 ```c++
 enum CarType { BMW, AUDI };
@@ -232,7 +245,7 @@ int main() {
 }
 ```
 
-## 工厂方法
+### 工厂方法
 
 ```c++
 class Factory {
@@ -267,7 +280,7 @@ int main() {
 }
 ```
 
-## 抽象工厂
+### 抽象工厂
 
 考虑产品簇(有关联关系的系列产品), 对每一个产品都需要定义一个类, 导致类急剧增多
 
@@ -362,7 +375,7 @@ int main() {
 
 ## 代理模式
 
-proxy 代理模式: 通过代理类, 来控制实际对象的访问权限
+proxy 代理模式: 通过代理类, 来控制实际对象（委托类）的访问权限
 
 ```c++
 class VideoSite {  // #1 抽象类
@@ -384,6 +397,7 @@ class FixBugVideoSite : public VideoSite {  // #2 委托类
     }
 };
 
+// 代理 FixBugVideoSite
 class FreeVideoSiteProxy : public VideoSite {  // #3 代理类
 public:
     FreeVideoSiteProxy() { pVideo = new FixBugVideoSite(); }
@@ -508,7 +522,7 @@ int main() {
 // VGA 接口类
 class VGA {  
 public:
-    viretual void play() = 0;
+    virtual void play() = 0;
 };
 
 // TV01 表示支持 VGA 接口的投影仪
@@ -521,7 +535,7 @@ public:
 // HDMI 接口类
 class HDMI {  
 public:
-    viretual void play() = 0;
+    virtual void play() = 0;
 };
 
 // TV02 表示支持 HDMI 接口的投影仪
@@ -555,7 +569,7 @@ public:
 int main() {
     Computer computer;
     computer.playVideo(new TV01());
-    computer.playVideo(new VGAToHDMIAdapter(new TV02());
+    computer.playVideo(new VGAToHDMIAdapter(new TV02()));
     
     return 0;
 }
