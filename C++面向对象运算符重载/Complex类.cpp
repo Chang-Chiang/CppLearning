@@ -1,3 +1,13 @@
+/**
+ * @file Complex类.cpp
+ * @author Chang Chiang (Chang_Chiang@outlook.com)
+ * @brief 复数类实现
+ * @version 0.1
+ * @date 2023-11-09
+ *
+ * @copyright Copyright (c) 2023
+ *
+ */
 #include <iostream>
 
 using std::cin;

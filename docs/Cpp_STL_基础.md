@@ -62,7 +62,7 @@ STL, standard template library 标准模板库,
 + 操作
 
   ```c++
-  vector<inv> vec;
+  vector<int> vec;
   ```
 
   + 增加
